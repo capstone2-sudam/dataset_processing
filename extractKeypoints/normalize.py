@@ -66,6 +66,7 @@ def normalize_frame(frame):
             pts = temp_frame[group]
             if len(pts) > 0 and not np.all(pts == 0):
                 norm_pts = (pts - center) / shoulder_dist
+                norm_pts[:, 2] = norm_pts[:, 2] * 0.3
                 temp_frame[group] = norm_pts
             else:
                 # 0으로 채워진 데이터는 공식에 넣지 말고 그대로 0으로 둔다.
