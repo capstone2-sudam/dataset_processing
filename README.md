@@ -28,7 +28,7 @@ MediaPipe를 활용하여 1개 프레임당 총 7개 부위, 141개의 3D 좌표
 ## 최종 저장 JSON 파일 구조
 최종 결과물은 메타데이터와 전체 프레임 데이터를 포함하는 아래와 같은 구조를 가진다.
 
-'''python
+```python
 final_package = 
 {
     "metadata": {
@@ -56,4 +56,4 @@ final_package =
         }
     ]        
 }
-'''
+```
