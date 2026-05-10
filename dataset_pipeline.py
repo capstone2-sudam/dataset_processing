@@ -5,7 +5,7 @@ import os
 import json
 from pathlib import Path
 from tqdm import tqdm
-from extractKeypoints import extract_raw, interpolate, normalize, extractFeature
+from extractKeypoints import extract_raw, interpolate, normalize
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -15,11 +15,10 @@ BASE_DIR = os.path.join(CURRENT_DIR, "dataset")
 DIR_VIDEOS = os.path.join(BASE_DIR, "raw_videos")
 DIR_RAW_JSON = os.path.join(BASE_DIR, "extracted_raw")
 DIR_INTERP_JSON = os.path.join(BASE_DIR, "interpolated")
-DIR_NORM_JSON = os.path.join(BASE_DIR, "normalized")
-DIR_DOMINANT_JSON = os.path.join(BASE_DIR, "dominant_hand")
+DIR_FINAL_JSON = os.path.join(BASE_DIR, "final_dataset")
 
 # 최상위 기본 폴더 4개 생성
-for folder in [DIR_VIDEOS, DIR_RAW_JSON, DIR_INTERP_JSON, DIR_NORM_JSON, DIR_DOMINANT_JSON]:
+for folder in [DIR_VIDEOS, DIR_RAW_JSON, DIR_INTERP_JSON, DIR_FINAL_JSON]:
     os.makedirs(folder, exist_ok=True)
 
 def save_to_json(data, file_path):
@@ -38,20 +37,17 @@ def process_video_to_final_json(video_path, current_idx, total_count):
     # 각 단계별 최상위 폴더에 하위 폴더 경로 합치기
     raw_target_dir = os.path.join(DIR_RAW_JSON, rel_dir)
     interp_target_dir = os.path.join(DIR_INTERP_JSON, rel_dir)
-    norm_target_dir = os.path.join(DIR_NORM_JSON, rel_dir)
-    dominant_target_dir = os.path.join(DIR_DOMINANT_JSON, rel_dir)
+    final_target_dir = os.path.join(DIR_FINAL_JSON, rel_dir)
 
     # 파일 저장 직전에, 목적지 폴더들이 실제로 존재하는지 확인하고 없으면 생성
     os.makedirs(raw_target_dir, exist_ok=True)
     os.makedirs(interp_target_dir, exist_ok=True)
-    os.makedirs(norm_target_dir, exist_ok=True)
-    os.makedirs(dominant_target_dir, exist_ok=True)
+    os.makedirs(final_target_dir, exist_ok=True)
 
     # 최종 파일 저장 경로
     raw_json_path = os.path.join(raw_target_dir, f"{base_name}_keypoints_raw.json")
     interp_json_path = os.path.join(interp_target_dir, f"{base_name}_keypoints_interp.json")
-    norm_json_path = os.path.join(norm_target_dir, f"{base_name}_keypoints_norm.json")
-    dominant_json_path = os.path.join(dominant_target_dir, f"{base_name}_final.json")
+    final_json_path = os.path.join(final_target_dir, f"{base_name}_keypoints_final.json")
 
     # # 진행 상황바 생성
     # with tqdm(total=3, desc=f"처리 중: {rel_dir}/{base_name}", leave=False) as pbar:
@@ -87,7 +83,7 @@ def process_video_to_final_json(video_path, current_idx, total_count):
         with open(raw_json_path, 'r', encoding='utf-8') as f:
             raw_data = json.load(f)
     else:
-        print(f"  -> [1/3] ⚙️ 추출 중...")
+        print(f"  -> [1/3] 추출 중...")
         raw_data = extract_raw.extract_raw_features(video_path)
         save_to_json(raw_data, raw_json_path)
     
@@ -101,39 +97,28 @@ def process_video_to_final_json(video_path, current_idx, total_count):
         with open(interp_json_path, 'r', encoding='utf-8') as f:
             interpolated_data = json.load(f)
     else:
-        print(f"  -> [2/3] ⚙️ 결측치 보간 중...")
+        print(f"  -> [2/3] 결측치 보간 중...")
         interpolated_data = interpolate.interpolate_landmarks(raw_data, limit_frames=10)
         save_to_json(interpolated_data, interp_json_path)
 
-    
     # [Step 3] 정규화
-    if os.path.exists(norm_json_path):
+    if os.path.exists(final_json_path):
         print(f"  -> [3/3] ⏩ 기존 정규화 데이터 존재 (건너뜀)")
-        with open(norm_json_path, 'r', encoding='utf-8') as f:
-            normalized_data = json.load(f)
-    else:
-        print(f"  -> [3/3] ⚙️ 정규화 중...")
-        normalized_data = [normalize.normalize_frame(frame) for frame in interpolated_data]
-        save_to_json(normalized_data, norm_json_path)
 
-    # [Step 4] 우세손 판별
-    if os.path.exists(dominant_json_path):
-        print(f"  -> [4/4] ⏩ 기존 우세손 데이터 존재 (스킵)")
     else:
-        print(f"  -> [4/4] ⚙️ 우세손 판별 및 최종 패키징 중...")
-        
-        # 앞서 만든 함수 호출 (리스트 형태의 normalized_data를 그대로 전달)
-        dominant_data = extractFeature.determine_dominant_hand(normalized_data)
-        
+        print(f"  -> [3/3] 정규화 및 최종 패키징 중...")
+        normalized_data = [normalize.normalize_frame(frame) for frame in interpolated_data]
+
         final_package = {
             "metadata": {
-                "dominant_hand": dominant_data,
                 "total_frames": len(normalized_data),
-                "video_fileName": base_name
+                "video_fileName": base_name,
+                "fps": 30
             },
             "frames": normalized_data
         }
-        save_to_json(final_package, dominant_json_path)
+
+        save_to_json(final_package, final_json_path)
 
     print(f"  ✅ 완료!")
 

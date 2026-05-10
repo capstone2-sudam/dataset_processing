@@ -21,7 +21,13 @@ def animate_overlay_comparison(json_paths, output_filename="overlay_comparison.m
     all_data = []
     for path in json_paths:
         with open(path, 'r', encoding='utf-8') as f:
-            all_data.append(json.load(f))
+            data = json.load(f)
+            
+        # 🌟 추가된 방어 코드: 데이터가 딕셔너리이고 'frames' 키가 있다면, frames 리스트만 쏙 빼옵니다.
+        if isinstance(data, dict) and "frames" in data:
+            data = data["frames"]
+        
+        all_data.append(data)
 
     # 모든 영상 중 가장 짧은 프레임 수에 맞춤 (동기화)
     total_frames = min(len(d) for d in all_data)
@@ -141,20 +147,20 @@ def animate_overlay_comparison(json_paths, output_filename="overlay_comparison.m
 
 # === 사용 예시 ===
 paths = [
-    r"C:\Users\blues\Data\dataset\normalized\daily\NIA_SL_FS0007_CROWD03_F_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\daily\NIA_SL_FS0001_CROWD01_F_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\daily\NIA_SL_FS0002_CROWD01_F_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\daily\NIA_SL_FS0017_CROWD03_F_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\daily\NIA_SL_FS0172_CROWD03_F_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\medical\004 - [의료용어 수어해설사전] 복통_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\medical\031 - [의료용어 수어해설사전] 근육_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\medical\026 - [의료용어 수어해설사전] 감기_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\medical\089 - [의료용어 수어해설사전] 시력검사_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\medical\152 - [의료용어 수어해설사전] 화상_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\medical\028 - [의료용어 수어해설사전] 골절_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\medical\157 - [의료용어 수어해설사전] 알레르기_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\medical\158 - [의료용어 수어해설사전] 아토피 피부염_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\warning\NIA_SL_WORD0069_REAL01_F_keypoints_norm.json",
-    r"C:\Users\blues\Data\dataset\normalized\warning\NIA_SL_WORD0072_REAL01_F_keypoints_norm.json"
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\daily\NIA_SL_FS0017_CROWD03_F_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\daily\NIA_SL_FS0001_CROWD01_F_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\daily\NIA_SL_FS0002_CROWD01_F_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\daily\NIA_SL_FS0017_CROWD03_F_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\daily\NIA_SL_FS0302_CROWD03_F_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\004 - [의료용어 수어해설사전] 복통_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\031 - [의료용어 수어해설사전] 근육_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\026 - [의료용어 수어해설사전] 감기_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\089 - [의료용어 수어해설사전] 시력검사_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\152 - [의료용어 수어해설사전] 화상_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\028 - [의료용어 수어해설사전] 골절_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\157 - [의료용어 수어해설사전] 알레르기_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\158 - [의료용어 수어해설사전] 아토피 피부염_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\warning\NIA_SL_WORD0069_REAL01_F_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\warning\NIA_SL_WORD0072_REAL01_F_keypoints_final.json"
 ]
 animate_overlay_comparison(paths, "normalized_overlay.mp4", is_normalized=True)
