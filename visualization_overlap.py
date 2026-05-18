@@ -123,7 +123,7 @@ def animate_overlay_comparison(json_paths, output_filename="overlay_comparison.m
                 ax.scatter(eyes[:, 0], eyes[:, 2], eyes[:, 1], c=color, s=2, alpha=0.6)
 
         # 정면 뷰 고정 (비교를 위해 회전 생략)
-        ax.view_init(elev=0, azim=-90)
+        ax.view_init(elev=0, azim=0)
 
     ani = FuncAnimation(fig, update, frames=total_frames, interval=(1000/FPS), repeat=False)
     
@@ -147,20 +147,9 @@ def animate_overlay_comparison(json_paths, output_filename="overlay_comparison.m
 
 # === 사용 예시 ===
 paths = [
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\daily\NIA_SL_FS0017_CROWD03_F_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\daily\NIA_SL_FS0001_CROWD01_F_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\daily\NIA_SL_FS0002_CROWD01_F_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\daily\NIA_SL_FS0017_CROWD03_F_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\daily\NIA_SL_FS0302_CROWD03_F_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\004 - [의료용어 수어해설사전] 복통_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\031 - [의료용어 수어해설사전] 근육_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\026 - [의료용어 수어해설사전] 감기_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\089 - [의료용어 수어해설사전] 시력검사_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\152 - [의료용어 수어해설사전] 화상_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\028 - [의료용어 수어해설사전] 골절_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\157 - [의료용어 수어해설사전] 알레르기_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\medical\158 - [의료용어 수어해설사전] 아토피 피부염_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\warning\NIA_SL_WORD0069_REAL01_F_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\dataset\final_dataset\warning\NIA_SL_WORD0072_REAL01_F_keypoints_final.json"
+    r"C:\Users\blues\Sudam\ksl_translation\VXPAKOKS230809730_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\VXPAKOKS230809740_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\VXPAKOKS230809750_keypoints_final.json",
+    r"C:\Users\blues\Sudam\ksl_translation\VXPAKOKS230809760_keypoints_final.json"
 ]
-animate_overlay_comparison(paths, "normalized_overlay.mp4", is_normalized=True)
+animate_overlay_comparison(paths, "normalized_overlay_2.mp4", is_normalized=True)
