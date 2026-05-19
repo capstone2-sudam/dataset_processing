@@ -147,9 +147,7 @@ def animate_overlay_comparison(json_paths, output_filename="overlay_comparison.m
 
 # === 사용 예시 ===
 paths = [
-    r"C:\Users\blues\Sudam\ksl_translation\VXPAKOKS230809730_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\VXPAKOKS230809740_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\VXPAKOKS230809750_keypoints_final.json",
-    r"C:\Users\blues\Sudam\ksl_translation\VXPAKOKS230809760_keypoints_final.json"
+    r"파일 경로 1",
+    r"파일 경로 2"
 ]
 animate_overlay_comparison(paths, "normalized_overlay_2.mp4", is_normalized=True)
