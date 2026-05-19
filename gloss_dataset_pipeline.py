@@ -5,7 +5,7 @@ import pandas as pd
 from extractKeypoints import sliceGloss
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.join(CURRENT_DIR, "dataset")
+BASE_DIR = os.path.join(CURRENT_DIR, "dataset_mini")
 
 # raw_videos 안에 mp4와 json이 같이 있음. 같은 수어 영상에 대해서는 동일 제목 mp4와 json 파일을 가지고 있음
 DIR_VIDEOS = os.path.join(BASE_DIR, "raw_videos")
@@ -58,6 +58,8 @@ def save_to_json(data, file_path):
 
 def process_and_save_gesture(anno_data, final_data, base_target_glosses, base_name, gloss_anim_map, current_max_id, new_gloss_count, gloss_counter):
     extracted_gesture = sliceGloss.slice_gestures(anno_data, final_data, base_target_glosses)
+    
+    has_target_gesture = len(extracted_gesture) > 0
 
     for clip in extracted_gesture:
         final_gloss_id = clip["gloss_id"]
@@ -82,17 +84,20 @@ def process_and_save_gesture(anno_data, final_data, base_target_glosses, base_na
                 "gloss_id": final_gloss_id,
                 "animation_id": int(gloss_anim_map[final_gloss_id]),
                 "original_video": base_name,
+                "start_time": clip["start"],
+                "end_time": clip["end"],
                 "total_frames": len(clip["frames"])
             },
             "frames": clip["frames"]
         }
-        with open(os.path.join(save_dir, save_name), 'w', encoding='utf-8') as out_f:
-            json.dump(output_data, out_f, indent=4, ensure_ascii=False)
+        save_to_json(output_data, os.path.join(save_dir, save_name))
+        # with open(os.path.join(save_dir, save_name), 'w', encoding='utf-8') as out_f:
+        #     json.dump(output_data, out_f, indent=4, ensure_ascii=False)
 
-    return current_max_id, new_gloss_count    
+    return current_max_id, new_gloss_count, has_target_gesture
 
 
-def process_and_save_nms(anno_data, final_data, base_name, nms_counter):
+def process_and_save_nms(anno_data, final_data, base_name, nms_counter, gloss_anim_map):
     extracted_nms = sliceGloss.slice_nms(anno_data, final_data)
 
     for clip in extracted_nms:
@@ -105,17 +110,27 @@ def process_and_save_nms(anno_data, final_data, base_name, nms_counter):
         os.makedirs(save_dir, exist_ok=True)
         save_name = f"{nms_type}_{current_idx:03d}_{base_name}.json"
 
+        anim_id = gloss_anim_map.get(nms_type)
+        if anim_id is None:
+            print(f"  -> ⚠️ [경고] '{nms_type}'에 대한 Animation ID가 엑셀에 없습니다! (-1 임시 부여)")
+            anim_id = -1
+        else:
+            anim_id = int(anim_id)
+
         output_data = {
             "metadata": {
                 "nms_type": nms_type,
+                "animation_id": anim_id,
                 "original_video": base_name,
+                "start_time": clip["start"],
+                "end_time": clip["end"],
                 "total_frames": len(clip["frames"])
             },
             "frames": clip["frames"]
         }
-
-        with open(os.path.join(save_dir, save_name), 'w', encoding='utf-8') as out_f:
-            json.dump(output_data, out_f, indent=4, ensure_ascii=False)
+        save_to_json(output_data, os.path.join(save_dir, save_name))
+        # with open(os.path.join(save_dir, save_name), 'w', encoding='utf-8') as out_f:
+        #     json.dump(output_data, out_f, indent=4, ensure_ascii=False)
 
 def run_pipeline():
     print(f"🔍 '{EXCEL_MAPPING_PATH}' 엑셀 파일 스캔 중...")
@@ -184,18 +199,21 @@ def run_pipeline():
         with open(anno_json_path, 'r', encoding='utf-8') as f:
             anno_data = json.load(f)
         with open(final_json_path, 'r', encoding='utf-8') as f:
-            final_data = json.load(f)
+            final_data = json.load(f) 
         
         # 제스처 추출 및 저장 (액셀 업데이트 포함)
         gloss_counter = {} 
         nms_counter = {} 
 
-        current_max_id, new_gloss_count = process_and_save_gesture(
+        current_max_id, new_gloss_count, has_target_gesture = process_and_save_gesture(
             anno_data, final_data, base_target_glosses, base_name, gloss_anim_map, 
             current_max_id, new_gloss_count, gloss_counter
         )
 
-        process_and_save_nms(anno_data, final_data, base_name, nms_counter)
+        if has_target_gesture:
+            process_and_save_nms(anno_data, final_data, base_name, nms_counter, gloss_anim_map)
+        else:
+            print(f"  -> 타겟 단어가 없어 NMS 추출도 건너뜁니다.")
 
     print("\n" + "="*40)
 
