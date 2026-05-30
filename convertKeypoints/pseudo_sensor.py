@@ -110,7 +110,7 @@ class PseudoSensorConverter:
             # 회전 행렬이 직교하지 않는 등 불량 데이터일 경우 안전하게 0 반환
             return [0.0, 0.0, 0.0]
 
-
+    @classmethod
     def convert_to_sensor_data(cls, input_json_path: str):
         """
         원본 MediaPipe JSON 파일을 읽어 센서 데이터셋 포맷으로 변환 후 저장합니다.
