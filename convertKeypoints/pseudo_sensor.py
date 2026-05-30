@@ -99,7 +99,7 @@ class PseudoSensorConverter:
         v_x = v_x / np.linalg.norm(v_x)
 
         # 회전 행렬 구성 (3*3)
-        rot_matrix = np.column_stack(v_x, v_y, v_z)
+        rot_matrix = np.column_stack((v_x, v_y, v_z))
 
         try:
             # 회전 행렬에서 오일러 각도(Roll, Pitch, Yaw) 추출 (xyz 순서)
