@@ -104,7 +104,7 @@ class PseudoSensorConverter:
         try:
             # 회전 행렬에서 오일러 각도(Roll, Pitch, Yaw) 추출 (xyz 순서)
             r = R.from_matrix(rot_matrix)
-            roll, pitch, yaw = r.as_euler('xyz', degrees=True)
+            yaw, pitch, roll = r.as_euler('ZYX', degrees=True)
             return [round(float(roll), 4), round(float(pitch), 4), round(float(yaw), 4)]
         except ValueError:
             # 회전 행렬이 직교하지 않는 등 불량 데이터일 경우 안전하게 0 반환
