@@ -62,12 +62,14 @@ class PseudoSensorConverter:
         왼손/오른손 여부(is_right_hand)에 따라 Z축 방향을 올바르게 보정합니다.
         """
 
+        error_quat = [0.0, 0.0, 0.0, 1.0]
+
         if not hand_landmarks or len(hand_landmarks) < 21:
-            return [0.0, 0.0, 0.0]
+            return error_quat
         
         pts = np.array(hand_landmarks)
         if np.allclose(pts, 0.0):
-            return [0.0, 0.0, 0.0]
+            return error_quat
 
         p0 = pts[0]
         p5 = pts[5]
@@ -77,7 +79,7 @@ class PseudoSensorConverter:
         # Y축: 손목에서 중지 밑동으로
         v_y = p9 - p0
         if np.linalg.norm(v_y) == 0: 
-            return [0.0, 0.0, 0.0]
+            return error_quat
         v_y = v_y / np.linalg.norm(v_y)
 
         # Z축: 외적을 이용한 법선 벡터
@@ -90,25 +92,33 @@ class PseudoSensorConverter:
         else:
             v_z = np.cross(v_17, v_5)
             
-        if np.linalg.norm(v_z) == 0: return [0.0, 0.0, 0.0]
+        if np.linalg.norm(v_z) == 0: return error_quat
         v_z = v_z / np.linalg.norm(v_z)
 
         # X축: Y와 Z의 외적
         v_x = np.cross(v_y, v_z)
-        if np.linalg.norm(v_x) == 0: return [0.0, 0.0, 0.0]
+        if np.linalg.norm(v_x) == 0: return error_quat
         v_x = v_x / np.linalg.norm(v_x)
+
+        if np.dot(v_x, np.cross(v_y, v_z)) < 0:
+            v_z = -v_z  # 좌표계 방향을 강제로 보정
 
         # 회전 행렬 구성 (3*3)
         rot_matrix = np.column_stack((v_x, v_y, v_z))
+        u, _, vh = np.linalg.svd(rot_matrix)
+        rot_matrix = u @ vh
 
         try:
-            # 회전 행렬에서 오일러 각도(Roll, Pitch, Yaw) 추출 (xyz 순서)
             r = R.from_matrix(rot_matrix)
-            yaw, pitch, roll = r.as_euler('ZYX', degrees=True)
-            return [round(float(roll), 4), round(float(pitch), 4), round(float(yaw), 4)]
+            qx, qy, qz, qw = r.as_quat()
+            
+            if qw < 0:
+                qx, qy, qz, qw = -qx, -qy, -qz, -qw
+
+            return [round(float(qx), 6), round(float(qy), 6), round(float(qz), 6), round(float(qw), 6)]
         except ValueError:
             # 회전 행렬이 직교하지 않는 등 불량 데이터일 경우 안전하게 0 반환
-            return [0.0, 0.0, 0.0]
+            return error_quat
 
     @classmethod
     def convert_to_sensor_data(cls, input_json_path: str):
@@ -125,21 +135,21 @@ class PseudoSensorConverter:
             right_hand = frame.get("right_hand_keypoints", [])
 
             left_flex = cls.get_flex_sensor_payload(left_hand)
-            left_imu = cls.get_imu_sensor_payload(left_hand, is_right_hand=False)
+            left_quat = cls.get_imu_sensor_payload(left_hand, is_right_hand=False)
 
             right_flex = cls.get_flex_sensor_payload(right_hand)
-            right_imu = cls.get_imu_sensor_payload(right_hand, is_right_hand=True)
+            right_quat= cls.get_imu_sensor_payload(right_hand, is_right_hand=True)
 
             sensor_frames.append({
                 "frame_number": frame["frame_number"],
                 "timestamp": frame["timestamp"],
                 "left_hand": {
                     "flex_mcp_pip": left_flex, # [10개]
-                    "imu_rpy": left_imu        # [3개]
+                    "imu_quat": left_quat        # [4개]
                 },
                 "right_hand": {
                     "flex_mcp_pip": right_flex, # [10개]
-                    "imu_rpy": right_imu        # [3개]
+                    "imu_quat": right_quat        # [4개]
                 }
             })
 
